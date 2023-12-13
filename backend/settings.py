@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "sujal",
     'rest_framework',
+    'django_mysql',
 ]
 
 MIDDLEWARE = [
