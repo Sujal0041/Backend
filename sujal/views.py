@@ -10,6 +10,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import CustomUserSerializer
 from rest_framework import status
 from django.contrib.auth import authenticate
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import permissions
 
 
       
@@ -30,22 +32,36 @@ def register_user(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+
 def login_user(request):
-    data = request.data
-    email = data.get('email')
-    password = data.get('password')
+    try:
+        # permission_classes = (permissions.AllowAny,)
+        data = request.data
+        email = data.get('email')
+        password = data.get('password')
 
-    print("Email:", email)
-    print("Password", password)
+        print("Email:", email)
+        print("Password", password)
 
-    # Authenticate user
-    user = authenticate(request, email=email, password=password)
-    print("Authenticated User", user)
+        print("Email type:", type(email))
+        print("Password type:", type(password))
 
-    if user is not None:
-        refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
+        print(request)
 
-        return Response({'token': access_token}, status=status.HTTP_200_OK)
-    else:
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Authenticate user
+        user = authenticate(request, email=email, password=password)
+        print("Authenticated User", user)
+
+        if user is not None:
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            return Response({'token': access_token}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    except ObjectDoesNotExist:
+        return Response({'error': 'User does not exist'}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        # Log other exceptions for debugging purposes
+        print("Unexpected error:", e)
+        return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
