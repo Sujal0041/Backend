@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "sujal",
+    "finance",
     'rest_framework',
     'rest_framework_simplejwt',
     'django_mysql',
@@ -84,7 +85,7 @@ WSGI_APPLICATION = "backend.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydb',
+        'NAME': 'kharcha_bachat',
         'USER': 'root',
         'PASSWORD': '',
         'HOST':'localhost',
