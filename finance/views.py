@@ -9,6 +9,7 @@ from rest_framework import status, generics
 class TransactionCreateView(APIView):
     def post(self, request):
         serializer = FinanceTransactionSerializer(data=request.data)
+        print(request.data)
         if serializer.is_valid():
             transaction = serializer.save()
             # Update wallet amount based on transaction type
@@ -28,7 +29,11 @@ def get_all_transactions(request):
 
 class WalletListCreateView(APIView):
     def post(self, request):
+        # user = request.user
+        # print(user)
+        # request.data['user'] = user.id
         serializer = WalletSerializer(data=request.data)
+        print(serializer)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
