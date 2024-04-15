@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "sujal",
     "finance",
     "budget",
+    "category",
     'rest_framework',
     'rest_framework_simplejwt',
     'django_mysql',
