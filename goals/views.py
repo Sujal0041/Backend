@@ -5,18 +5,22 @@ from .models import Goal
 from .serializers import GoalSerializer
 from django.db import models
 from finance.models import Wallet, FinanceTransaction
+from rest_framework.permissions import IsAuthenticated
+
 
 
 class GoalListCreateView(generics.ListCreateAPIView):
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer
+    
 
     def post(self, request):
         try:
             data = request.data
-            data.update({"user": self.request.user.id})
+            user = request.user
+            data.update({"user": user.id})
             data.update({"remaining_amount": data["amount"]})
-            serializer = GoalSerializer(data=data)
+            serializer = GoalSerializer(data=data, context={'user': user})
             print(serializer)
             if serializer.is_valid():
                 serializer.save()
@@ -27,7 +31,7 @@ class GoalListCreateView(generics.ListCreateAPIView):
             import traceback
             traceback.print_exc()  
             return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        
 class GoalDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer
@@ -69,15 +73,25 @@ class CalculateGoalProgress(generics.ListAPIView):
             return Response({"error": "An error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class GoalListView(generics.ListAPIView):
-    def get(self, request, *args, **kwargs):
-        queryset = get_queryset(request)
-        serialized_data = get_serialized_data(queryset)
-        return Response(serialized_data, status=status.HTTP_200_OK)
-    
-def get_queryset(request):
-    queryset = Goal.objects.all()
-    return queryset
+    permission_classes = [IsAuthenticated]
 
-def get_serialized_data(queryset):
-    serializer = GoalSerializer(queryset, many=True)
-    return serializer.data
+    def get_queryset(self):
+        return Goal.objects.filter(user=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = GoalSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class GoalListViewRemoved(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter out goals where the status is "Completed"
+        return Goal.objects.filter(user=self.request.user).exclude(status="Completed")
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = GoalSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+   
